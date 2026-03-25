@@ -8,7 +8,7 @@
 }
 
 .ui-selected { 
-    background: #007fff; 
+    background:  #007fff; 
     color: white; 
 }
 
@@ -35,4 +35,15 @@
 
 .no-close .ui-dialog-titlebar-close {
     display: none;
+}
+
+#perm_entry_header_allow_explanation,
+#perm_entry_header_deny_explanation {
+    display: none;
+    width: 200px;
+}
+
+#perm_entry_header_allow,
+#perm_entry_header_deny {
+    background: #007fff;
 }
