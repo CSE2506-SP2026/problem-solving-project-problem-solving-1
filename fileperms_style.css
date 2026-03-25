@@ -37,13 +37,17 @@
     display: none;
 }
 
-#perm_entry_header_allow_explanation,
-#perm_entry_header_deny_explanation {
-    display: none;
-    width: 200px;
+#perm_entry_header {
+    position: relative;
 }
 
-#perm_entry_header_allow,
-#perm_entry_header_deny {
-    background: #007fff;
+#perm_entry_header_allow_explanation,
+#perm_entry_header_deny_explanation {
+    position: absolute;
+    background: black;
+    color: white;
+    padding: 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    display: none;
 }

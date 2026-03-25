@@ -73,20 +73,24 @@ $('.permbutton').click( function( e ) {
 // ---- Assign unique ids to everything that doesn't have an ID ----
 $('#html-loc').find('*').uniqueId() 
 
-const allowHover = document.getElementById('perm_entry_header_allow');
-const allowExplanation = document.getElementById('perm_entry_header_allow_explanation');   
-const denyHover = document.getElementById('perm_entry_header_deny');
-const denyExplanation = document.getElementById('perm_entry_header_deny_explanation');
+document.addEventListener("DOMContentLoaded", function () {
+    const allowHover = document.getElementById('perm_entry_header_allow');
+    const allowExplanation = document.getElementById('perm_entry_header_allow_explanation');   
 
-allowHover.addEventListener('mouseenter', function() {
-    allowExplanation.style.display = 'block';
-});
-allowHover.addEventListener('mouseleave', function() {
-    allowExplanation.style.display = 'none';
-});
-denyHover.addEventListener('mouseenter', function() {
-    denyExplanation.style.display = 'block';
-});
-denyHover.addEventListener('mouseleave', function() {
-    denyExplanation.style.display = 'none';
+    const denyHover = document.getElementById('perm_entry_header_deny');
+    const denyExplanation = document.getElementById('perm_entry_header_deny_explanation');
+
+    allowHover.addEventListener('mouseenter', function() {
+        allowExplanation.style.display = 'block';
+    });
+    allowHover.addEventListener('mouseleave', function() {
+        allowExplanation.style.display = 'none';
+    });
+
+    denyHover.addEventListener('mouseenter', function() {
+        denyExplanation.style.display = 'block';
+    });
+    denyHover.addEventListener('mouseleave', function() {
+        denyExplanation.style.display = 'none';
+    });
 });
