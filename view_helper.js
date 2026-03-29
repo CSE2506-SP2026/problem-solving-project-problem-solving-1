@@ -260,6 +260,11 @@ let allowCell = table.find("#" + id_prefix + "_" + row_key + "_allow_cell");
 
 // define an element which will display *grouped* permissions for a given file and user, and allow for changing them by checking/unchecking the checkboxes.
 function define_grouped_permission_checkboxes(id_prefix, which_groups = null) {
+
+  const groupHelpText = {
+  Modify: "Includes write/edit plus delete and delete subfolders/files.",
+  Full_control: "Includes all rights: read, write, execute, delete, change permissions, and take ownership.",
+};
     // Set up table and header:
     let group_table = $(`
     <table id="${id_prefix}" class="ui-widget-content" width="100%">
@@ -280,6 +285,16 @@ function define_grouped_permission_checkboxes(id_prefix, which_groups = null) {
         let row = $(`<tr id="${id_prefix}_row_${g}">
             <td id="${id_prefix}_${g}_name">${g}</td>
         </tr>`)
+        if (groupHelpText[g]) {
+          row.find(`#${id_prefix}_${g}_name`).append(`
+  <span
+    id="${id_prefix}_${g}_info"
+    class="fa fa-info-circle group-info-icon"
+    data-tooltip="${groupHelpText[g]}"
+    style="margin-left:6px; color:#2f5fa7; cursor:pointer;"
+  ></span>
+`);
+        }
         for(let ace_type of ['allow', 'deny']) {
             row.append(`<td id="${id_prefix}_${g}_${ace_type}_cell">
                 <input type="checkbox" id="${id_prefix}_${g}_${ace_type}_checkbox" ptype="${ace_type}" class="groupcheckbox" group="${g}" ></input>
@@ -288,6 +303,26 @@ function define_grouped_permission_checkboxes(id_prefix, which_groups = null) {
         group_table.append(row)
     }  
 
+group_table.find('.group-info-icon').hover(
+  function () {
+    const text = $(this).attr('data-tooltip');
+    let tip = $('<div class="group-help-tooltip"></div>').text(text);
+    $('body').append(tip);
+
+    const pos = $(this).offset();
+    tip.css({
+      top: pos.top - 32,
+      left: pos.left + 16,
+      display: 'block'
+    });
+
+    $(this).data('tipElem', tip);
+  },
+  function () {
+    const tip = $(this).data('tipElem');
+    if (tip) tip.remove();
+  }
+);
 
     group_table.find('.groupcheckbox').prop('disabled', true)// disable all checkboxes to start
 

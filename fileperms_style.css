@@ -76,3 +76,17 @@ font-size: 12px;
 box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 display: none;
 }
+
+
+.group-help-tooltip {
+  position: absolute;
+  z-index: 2200;
+  background: #1f1f1f;
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  max-width: 360px;
+  display: none;
+  pointer-events: none;
+}
