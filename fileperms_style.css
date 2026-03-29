@@ -51,3 +51,28 @@
     font-size: 12px;
     display: none;
 }
+
+.deny-overridden {
+opacity: 0.55;
+position: relative;
+}
+
+.deny-override-icon {
+margin-left: 6px;
+color: #a33;
+font-size: 12px;
+vertical-align: middle;
+}
+
+.deny-warning-popup {
+position: absolute;
+z-index: 2000;
+background: #fff4d6;
+border: 1px solid #e0b85f;
+color: #5f4300;
+border-radius: 6px;
+padding: 6px 8px;
+font-size: 12px;
+box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+display: none;
+}

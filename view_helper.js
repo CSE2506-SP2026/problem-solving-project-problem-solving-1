@@ -204,6 +204,59 @@ function define_new_effective_permissions(id_prefix, add_info_col = false, which
     return effective_container
 }
 
+function show_deny_warning_popup($anchor, message) {
+  let popup = $('<div class="deny-warning-popup"></div>').text(message);
+  $("body").append(popup);
+
+  let pos = $anchor.offset();
+  popup.css({
+    top: pos.top - 34,
+    left: pos.left + 18,
+  });
+
+  popup
+    .fadeIn(120)
+    .delay(3000)
+    .fadeOut(220, function () {
+      $(this).remove();
+    });
+}
+function apply_deny_override_ui(
+  table,
+  id_prefix,
+  row_key,
+  allowShouldStayDisabled,
+) {
+
+    if (row_key && row_key.includes('Special_permissions')) {
+    return;
+}
+let allowBox = table.find("#" + id_prefix + "_" + row_key + "_allow_checkbox");
+let denyBox = table.find("#" + id_prefix + "_" + row_key + "_deny_checkbox");
+let allowCell = table.find("#" + id_prefix + "_" + row_key + "_allow_cell");
+
+  let denyChecked = denyBox.prop("checked");
+
+  if (denyChecked) {
+    allowBox.prop("checked", false);
+    allowBox.prop("disabled", true);
+    allowCell.addClass("deny-overridden");
+
+    if (allowCell.find(".deny-override-icon").length === 0) {
+      allowCell.append(
+        '<span class="fa fa-ban deny-override-icon" title="Overridden by Deny"></span>',
+      );
+    }
+  } else {
+    allowBox.prop("disabled", !!allowShouldStayDisabled);
+    allowCell.removeClass("deny-overridden");
+    allowCell.find(".deny-override-icon").remove();
+  }
+}
+
+
+
+
 
 // define an element which will display *grouped* permissions for a given file and user, and allow for changing them by checking/unchecking the checkboxes.
 function define_grouped_permission_checkboxes(id_prefix, which_groups = null) {
@@ -270,6 +323,12 @@ function define_grouped_permission_checkboxes(id_prefix, which_groups = null) {
 
                 }
             } 
+                            // Apply deny override visual feedback for each group
+            for(let g of which_groups) {
+                let allowInherited = !!(grouped_perms.allow && grouped_perms.allow[g] && grouped_perms.allow[g].inherited);
+                // apply_deny_override_ui(group_table, id_prefix, '_' + g + '_', allowInherited);
+                apply_deny_override_ui(group_table, id_prefix, g, allowInherited);
+            }
         }
         else {
             // can't get permissions for this username/filepath - reset everything into a blank state
@@ -284,6 +343,9 @@ function define_grouped_permission_checkboxes(id_prefix, which_groups = null) {
 
     //Update permissions when checkbox is clicked:
     group_table.find('.groupcheckbox').change(function(){
+        if ($(this).attr('ptype') === 'deny' && $(this).prop('checked')) {
+show_deny_warning_popup($(this), 'Deny overrides Allow and inherited Allows for this row.');
+}
         toggle_permission_group( group_table.attr('filepath'), group_table.attr('username'), $(this).attr('group'), $(this).attr('ptype'), $(this).prop('checked'))
         update_group_checkboxes()// reload checkboxes
     })
@@ -355,6 +417,20 @@ function define_permission_checkboxes(id_prefix, which_permissions = null){
                     }
                 }
             }
+            for (let p of which_permissions) {
+              let p_id = p.replace(/[ /]/g, "_");
+              let allowInherited = !!(
+                all_perms.allow &&
+                all_perms.allow[p] &&
+                all_perms.allow[p].inherited
+              );
+              apply_deny_override_ui(
+                perm_table,
+                id_prefix,
+                p_id,
+                allowInherited,
+              );
+            }
         }
         else {
             // can't get permissions for this username/filepath - reset everything into a blank state
@@ -369,6 +445,9 @@ function define_permission_checkboxes(id_prefix, which_permissions = null){
 
     //Update permissions when checkbox is clicked:
     perm_table.find('.perm_checkbox').change(function(){
+        if ($(this).attr('ptype') === 'deny' && $(this).prop('checked')) {
+show_deny_warning_popup($(this), 'Deny overrides Allow and inherited Allows for this row.');
+}
         console.log(perm_table.attr('filepath'), perm_table.attr('username'), $(this).attr('permission'), $(this).attr('ptype'), $(this).prop('checked'))
         toggle_permission( perm_table.attr('filepath'), perm_table.attr('username'), $(this).attr('permission'), $(this).attr('ptype'), $(this).prop('checked'))
         update_perm_table()// reload checkboxes
