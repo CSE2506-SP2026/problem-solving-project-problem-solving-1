@@ -37,7 +37,8 @@
     display: none;
 }
 
-#perm_entry_header {
+#perm_entry_header_allow,
+#perm_entry_header_deny {
     position: relative;
 }
 
@@ -50,6 +51,16 @@
     border-radius: 4px;
     font-size: 12px;
     display: none;
+}
+
+#perm_entry_header_allow_explanation {
+    top: 30px;
+    left: 60%;
+}
+
+#perm_entry_header_deny_explanation {
+    top: 30px;
+    left: 80%;
 }
 
 .deny-overridden {
@@ -89,4 +100,15 @@ display: none;
   max-width: 360px;
   display: none;
   pointer-events: none;
+}
+
+.info-icon {
+    margin-left: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    color: #007bff;
+}
+
+.info-icon:hover {
+    color: #0056b3;
 }

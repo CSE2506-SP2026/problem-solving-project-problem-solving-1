@@ -271,8 +271,25 @@ function define_grouped_permission_checkboxes(id_prefix, which_groups = null) {
         <tr id="${id_prefix}_header">
             <th id="${id_prefix}_header_p" width="99%">Permissions for <span id="${id_prefix}_header_username"></span>
             </th>
-            <th id="${id_prefix}_header_allow">Allow</th>
-            <th id="${id_prefix}_header_deny">Deny</th>
+            <th id="${id_prefix}_header_allow">
+  Allow
+  <span
+    id="${id_prefix}_header_allow_info"
+    class="fa fa-info-circle group-info-icon"
+    data-tooltip="Allow grants the selected permission to the user or group."
+    style="margin-left:6px; color:#2f5fa7; cursor:pointer;"
+  ></span>
+</th>
+
+<th id="${id_prefix}_header_deny">
+  Deny
+  <span
+    id="${id_prefix}_header_deny_info"
+    class="fa fa-info-circle group-info-icon"
+    data-tooltip="Deny explicitly blocks the permission. Deny overrides Allow and inherited permissions."
+    style="margin-left:6px; color:#2f5fa7; cursor:pointer;"
+  ></span>
+</th>
         </tr>
     </table>
     `)
@@ -396,11 +413,30 @@ function define_permission_checkboxes(id_prefix, which_permissions = null){
         <tr id="${id_prefix}_header">
             <th id="${id_prefix}_header_p" width="99%">Permissions for <span id="${id_prefix}_header_username"></span>
             </th>
-            <th id="${id_prefix}_header_allow">Allow</th>
-            <th id="${id_prefix}_header_deny">Deny</th>
+            <th id="${id_prefix}_header_allow">
+                Allow
+                <span
+                    id="${id_prefix}_header_allow_info"
+                    class="fa fa-info-circle group-info-icon"
+                    data-tooltip="Allow grants the selected permission to the user or group."
+                    style="margin-left:6px; color:#2f5fa7; cursor:pointer;"
+                ></span>
+                </th>
+
+                <th id="${id_prefix}_header_deny">
+                Deny
+                <span
+                    id="${id_prefix}_header_deny_info"
+                    class="fa fa-info-circle group-info-icon"
+                    data-tooltip="Deny explicitly blocks the permission. Deny overrides Allow and inherited permissions."
+                    style="margin-left:6px; color:#2f5fa7; cursor:pointer;"
+                ></span>
+                </th>
         </tr>
     </table>
     `)
+
+    $("#perm_entry_container").empty().append(perm_table);
 
     // If no subset of permissions is passed in, use all of them.
     if(which_permissions === null) {
