@@ -172,6 +172,127 @@ function recompute_file_structure(display_files) {
 }
 recompute_file_structure(files);
 
+// Snapshots for Undo in the main Permissions dialog and Advanced Security (shared stack).
+principalRegistry = new Map();
+permDialogUndoStack = [];
+permDialogUndoSuppress = false;
+
+function permissionUndoDialogsOpen() {
+    const permOpen =
+        typeof perm_dialog !== 'undefined' &&
+        perm_dialog.dialog &&
+        perm_dialog.dialog('isOpen');
+    const advOpen =
+        $('#advdialog').length &&
+        $('#advdialog').dialog &&
+        $('#advdialog').dialog('isOpen');
+    return permOpen || advOpen;
+}
+
+function seedPrincipalRegistry() {
+    principalRegistry = new Map();
+    for (const name in all_users) {
+        principalRegistry.set(name, all_users[name]);
+    }
+}
+seedPrincipalRegistry();
+
+function capturePermissionSnapshot() {
+    return files.map((file) => ({
+        path: get_full_path(file),
+        ownerName: get_user_name(file.owner),
+        using_permission_inheritance: file.using_permission_inheritance,
+        acl: file.acl.map((ace) => ({
+            whoName: get_user_name(ace.who),
+            permission: ace.permission,
+            is_allow_ace: ace.is_allow_ace,
+        })),
+    }));
+}
+
+function resolvePrincipal(name) {
+    if (principalRegistry.has(name)) return principalRegistry.get(name);
+    return name;
+}
+
+function applyPermissionSnapshot(snapshot) {
+    const byPath = Object.fromEntries(snapshot.map((e) => [e.path, e]));
+    for (const file of files) {
+        const e = byPath[get_full_path(file)];
+        if (!e) continue;
+        file.owner = resolvePrincipal(e.ownerName);
+        file.using_permission_inheritance = e.using_permission_inheritance;
+        file.acl = e.acl.map((a) =>
+            make_ace(
+                resolvePrincipal(a.whoName),
+                a.permission,
+                a.is_allow_ace
+            )
+        );
+    }
+    recompute_file_structure(files);
+}
+
+function recordPermDialogUndoSnapshot() {
+    if (!permissionUndoDialogsOpen()) return;
+    if (permDialogUndoSuppress) return;
+    permDialogUndoStack.push({ kind: 'model', data: capturePermissionSnapshot() });
+    updatePermissionUndoButtons();
+}
+
+// Add… only exists on the main Permissions dialog; this stays perm-dialog–gated intentionally.
+function recordPermDialogUndoAddedUser(username) {
+    if (typeof perm_dialog === 'undefined') return;
+    if (!perm_dialog.dialog('isOpen')) return;
+    if (permDialogUndoSuppress) return;
+    permDialogUndoStack.push({ kind: 'ui_add', username });
+    updatePermissionUndoButtons();
+}
+
+function clearPermDialogUndoStack() {
+    permDialogUndoStack.length = 0;
+    updatePermissionUndoButtons();
+}
+
+function updatePermissionUndoButtons() {
+    const hasUndo = permDialogUndoStack.length > 0;
+    const permOpen =
+        typeof perm_dialog !== 'undefined' &&
+        perm_dialog.dialog &&
+        perm_dialog.dialog('isOpen');
+    const advOpen =
+        $('#advdialog').length &&
+        $('#advdialog').dialog &&
+        $('#advdialog').dialog('isOpen');
+
+    let advTabActive = 0;
+    try {
+        if ($('#advtabs').length) {
+            advTabActive = $('#advtabs').tabs('option', 'active');
+        }
+    } catch (e) {
+        advTabActive = 0;
+    }
+
+    const permBtn = $('#perm_dialog_undo_button');
+    if (permBtn.length) {
+        if (hasUndo && permOpen) permBtn.show();
+        else permBtn.hide();
+    }
+
+    const advFooterUndo = $('#advanced-dialog-undo-button');
+    if (advFooterUndo.length) {
+        if (hasUndo && advOpen && advTabActive === 0) advFooterUndo.show();
+        else advFooterUndo.hide();
+    }
+
+    const ownerUndo = $('#adv_owner_undo_button');
+    if (ownerUndo.length) {
+        if (hasUndo && advOpen && advTabActive === 1) ownerUndo.show();
+        else ownerUndo.hide();
+    }
+}
+
 // get the users with ACEs for a given file object.
 // recursively follow inheritance if appropriate; following_inheritance flag indicates that this user has at least some inherited permissions.
 // returns a map of username to metadata about this file/user pair:
@@ -321,6 +442,8 @@ function get_grouped_permissions(file_obj, username) {
 
 function convert_parent_permissions(file_obj) {
     if (file_obj.using_permission_inheritance) {
+        if (typeof recordPermDialogUndoSnapshot === 'function')
+            recordPermDialogUndoSnapshot();
         // Only do this if inheritance is actually on
         for (user of Object.values(all_users)) {
             // for each user
@@ -345,7 +468,13 @@ function convert_parent_permissions(file_obj) {
 
 function replace_child_perm_with_inherited(file_obj) {
     let filepath = get_full_path(file_obj);
-    for (c of parent_to_children[filepath]) {
+    let children = parent_to_children[filepath];
+    if (!children || children.length === 0) {
+        return;
+    }
+    if (typeof recordPermDialogUndoSnapshot === 'function')
+        recordPermDialogUndoSnapshot();
+    for (c of children) {
         c.using_permission_inheritance = true;
         c.acl = [];
     }

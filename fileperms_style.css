@@ -112,3 +112,45 @@ display: none;
 .info-icon:hover {
     color: #0056b3;
 }
+
+/* Permissions dialog: red Undo (to the right of Remove) */
+#perm_dialog_undo_button.ui-button.perm-dialog-undo-button,
+#perm_dialog_undo_button.ui-button.perm-dialog-undo-button.ui-state-default {
+    margin-left: 8px;
+    background: #c62828;
+    color: #fff;
+    border: 1px solid #b71c1c;
+}
+#perm_dialog_undo_button.ui-button.perm-dialog-undo-button:hover,
+#perm_dialog_undo_button.ui-button.perm-dialog-undo-button.ui-state-hover {
+    background: #b71c1c;
+    color: #fff;
+    border-color: #7f0000;
+}
+#perm_dialog_undo_button.ui-button.perm-dialog-undo-button:focus {
+    background: #b71c1c;
+    color: #fff;
+}
+
+/* Advanced Security: footer Undo (Permissions tab, left of OK) and Owner tab Undo */
+#advanced-dialog-undo-button.ui-button,
+#advanced-dialog-undo-button.ui-button.ui-state-default,
+#adv_owner_undo_button.ui-button,
+#adv_owner_undo_button.ui-button.ui-state-default {
+    background: #c62828;
+    color: #fff;
+    border: 1px solid #b71c1c;
+}
+#advanced-dialog-undo-button.ui-button:hover,
+#advanced-dialog-undo-button.ui-button.ui-state-hover,
+#adv_owner_undo_button.ui-button:hover,
+#adv_owner_undo_button.ui-button.ui-state-hover {
+    background: #b71c1c;
+    color: #fff;
+    border-color: #7f0000;
+}
+#advanced-dialog-undo-button.ui-button:focus,
+#adv_owner_undo_button.ui-button:focus {
+    background: #b71c1c;
+    color: #fff;
+}

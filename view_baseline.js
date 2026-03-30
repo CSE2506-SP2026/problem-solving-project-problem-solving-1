@@ -9,6 +9,12 @@ perm_dialog = define_new_dialog('permdialog', title='Permissions', options = {
     // The following are standard jquery-ui options. See https://jqueryui.com/dialog/
     height: 500,
     width: 400,
+    open: function () {
+        if (typeof clearPermDialogUndoStack === 'function') clearPermDialogUndoStack();
+    },
+    close: function () {
+        if (typeof clearPermDialogUndoStack === 'function') clearPermDialogUndoStack();
+    },
     buttons: {
         OK:{
             text: "OK",
@@ -54,6 +60,7 @@ perm_add_user_select = define_new_user_select_field('perm_add_user', 'Add...', o
     if(selected_user && (selected_user.length > 0) && (selected_user in all_users)) { // sanity check that a user is actually selected (and exists)
         let expected_user_elem_id = `permdialog_file_user_${selected_user}`
         if( file_permission_users.find(`#${expected_user_elem_id}`).length === 0 ) { // if such a user element doesn't already exist
+            if (typeof recordPermDialogUndoAddedUser === 'function') recordPermDialogUndoAddedUser(selected_user);
             new_user_elem = make_user_elem('permdialog_file_user', selected_user)
             file_permission_users.append(new_user_elem)
         }
@@ -119,6 +126,12 @@ let are_you_sure_dialog = define_new_dialog('are_you_sure_dialog', "Are you sure
 // Add text to the dialog:
 are_you_sure_dialog.text('Do you want to remove permissions for this user?')
 
+// Undo (same dialog session): appears after permission toggles, add user, or remove user (to the right of Remove)
+perm_undo_user_button = $('<button type="button" id="perm_dialog_undo_button" class="ui-button ui-widget ui-corner-all perm-dialog-undo-button" style="display:none">Undo</button>')
+perm_undo_user_button.click(function () {
+    performPermDialogUndo();
+});
+
 // Make actual "remove" button:
 perm_remove_user_button  = $('<button id="perm_remove_user" class="ui-button ui-widget ui-corner-all">Remove</button>')
 perm_remove_user_button.click(function(){
@@ -150,13 +163,25 @@ perm_dialog.append($('<div id="permissions_user_title">Group or user names:</div
 perm_dialog.append(file_permission_users)
 perm_dialog.append(perm_add_user_select)
 perm_add_user_select.append(perm_remove_user_button) // Cheating a bit again - add the remove button the the 'add user select' div, just so it shows up on the same line.
+perm_add_user_select.append(perm_undo_user_button)
 perm_dialog.append(grouped_permissions)
 perm_dialog.append(advanced_expl_div)
 
 // --- Additional logic for reloading contents when needed: ---
-//Define an observer which will propagate perm_dialog's filepath attribute to all the relevant elements, whenever it changes:
-define_attribute_observer(perm_dialog, 'filepath', function(){
+// First arg may be the new filepath string (from define_attribute_observer) or { preserveSelectedUser: true } (e.g. after Undo).
+function reloadPermDialogForCurrentPath(maybePathOrOptions) {
+    let preserveSelectedUser = false;
+    if (maybePathOrOptions && typeof maybePathOrOptions === 'object' && maybePathOrOptions.preserveSelectedUser) {
+        preserveSelectedUser = true;
+    }
+
     let current_filepath = perm_dialog.attr('filepath')
+    if (!current_filepath || !(current_filepath in path_to_file)) return;
+
+    let usernameToRestore = '';
+    if (preserveSelectedUser) {
+        usernameToRestore = file_permission_users.attr('selected_item') || grouped_permissions.attr('username') || '';
+    }
 
     grouped_permissions.attr('filepath', current_filepath) // set filepath for permission checkboxes
     $('#permdialog_objname_namespan').text(current_filepath) // set filepath for Object Name text
@@ -164,13 +189,63 @@ define_attribute_observer(perm_dialog, 'filepath', function(){
     // Generate element with all the file-specific users:
     file_users = get_file_users(path_to_file[current_filepath])
     file_user_list = make_user_list('permdialog_file_user', file_users, add_attributes = true)
-    grouped_permissions.attr('username', '') // since we are reloading the user list, reset the username in permission checkboxes
     //replace previous user list with the one we just generated:
     file_permission_users.empty()
     file_permission_users.append(file_user_list)
-})
 
+    if (usernameToRestore) {
+        const userElem = file_permission_users.children().filter(function () {
+            return $(this).attr('name') === usernameToRestore;
+        }).first();
+        if (userElem.length) {
+            userElem.addClass('ui-selected').siblings().removeClass('ui-selected');
+            file_permission_users.attr('selected_item', usernameToRestore);
+            // Reset then set so grouped permission checkboxes refresh (observer ignores same value).
+            grouped_permissions.attr('username', '');
+            grouped_permissions.attr('username', usernameToRestore);
+        } else {
+            grouped_permissions.attr('username', '');
+            file_permission_users.removeAttr('selected_item');
+        }
+    } else {
+        grouped_permissions.attr('username', '');
+        file_permission_users.removeAttr('selected_item');
+    }
+}
 
+function performPermDialogUndo() {
+    if (permDialogUndoStack.length === 0) return;
+    const entry = permDialogUndoStack.pop();
+    const advWasOpen =
+        $('#advdialog').length &&
+        $('#advdialog').dialog &&
+        $('#advdialog').dialog('isOpen');
+    const advFp = $('#advdialog').attr('filepath');
+    permDialogUndoSuppress = true;
+    try {
+        if (entry.kind === 'model') {
+            applyPermissionSnapshot(entry.data);
+            emitState('Permissions dialog undo');
+        }
+    } finally {
+        permDialogUndoSuppress = false;
+    }
+    if (
+        typeof perm_dialog !== 'undefined' &&
+        perm_dialog.dialog &&
+        perm_dialog.dialog('isOpen')
+    ) {
+        reloadPermDialogForCurrentPath({ preserveSelectedUser: true });
+    }
+    if (advWasOpen && advFp && path_to_file[advFp]) {
+        open_advanced_dialog(advFp);
+    }
+    refreshPermEntryDialogIfOpen();
+    updatePermissionUndoButtons();
+}
+
+//Define an observer which will propagate perm_dialog's filepath attribute to all the relevant elements, whenever it changes:
+define_attribute_observer(perm_dialog, 'filepath', reloadPermDialogForCurrentPath)
 
 // ---- Old code which doesn't use the helper functions starts here ----
 
@@ -230,14 +305,13 @@ function open_advanced_dialog(file_path) {
     $('#adv_owner_user_list').empty()
     $(`.effectivecheckcell`).empty()
 
-    if(file_obj.using_permission_inheritance) {
+    if (file_obj.using_permission_inheritance) {
         $('#adv_perm_inheritance').prop('checked', true)
-    }
-    else {
+    } else {
         $('#adv_perm_inheritance').prop('checked', false)
     }
 
-
+    $('#adv_perm_replace_child_permissions').prop('checked', false)
 
     // permissions list for permissions tab:
     let users = get_file_users(file_obj)
@@ -314,7 +388,11 @@ for(let p of Object.values(permissions)) {
 
 // Advanced dialog
 $( "#advtabs" ).tabs({
-    heightStyle: 'fill'
+    heightStyle: 'fill',
+    activate: function () {
+        if (typeof updatePermissionUndoButtons === 'function')
+            updatePermissionUndoButtons();
+    },
 });
 let adv_contents = $(`#advdialog`).dialog({
     position: { my: "top", at: "top", of: $('#html-loc') },
@@ -323,15 +401,27 @@ let adv_contents = $(`#advdialog`).dialog({
     modal: true,
     autoOpen: false,
     appendTo: "#html-loc",
-    buttons: {
-        OK: {
-            text: "OK",
-            id: "advanced-dialog-ok-button",
-            click: function() {
-                $( this ).dialog( "close" );
-            }
-        }
-      }
+    open: function () {
+        if (typeof updatePermissionUndoButtons === 'function')
+            updatePermissionUndoButtons();
+    },
+    buttons: [
+        {
+            text: 'Undo',
+            id: 'advanced-dialog-undo-button',
+            class: 'adv-dialog-undo-button',
+            click: function () {
+                performPermDialogUndo();
+            },
+        },
+        {
+            text: 'OK',
+            id: 'advanced-dialog-ok-button',
+            click: function () {
+                $(this).dialog('close');
+            },
+        },
+    ],
 });
 // generate ID for each HTML element making up the dialog:
 
@@ -346,6 +436,7 @@ $('#adv_perm_inheritance').change(function(){
     let file_obj = path_to_file[filepath]
     if( $('#adv_perm_inheritance').prop('checked')) {
         // has just been turned on
+        if (typeof recordPermDialogUndoSnapshot === 'function') recordPermDialogUndoSnapshot();
         file_obj.using_permission_inheritance = true
         emitState()
         open_advanced_dialog(filepath) // reload/reopen dialog
@@ -382,6 +473,7 @@ $('#adv_perm_inheritance').change(function(){
                     click: function() {
                         let filepath = $('#advdialog').attr('filepath')
                         let file_obj = path_to_file[filepath]
+                        if (typeof recordPermDialogUndoSnapshot === 'function') recordPermDialogUndoSnapshot();
                         file_obj.using_permission_inheritance = false
                         emitState()
                         open_advanced_dialog(filepath) // reload/reopen 'advanced' dialog
@@ -455,12 +547,20 @@ effective_user_observer = new MutationObserver(function(mutationsList, observer)
 
 effective_user_observer.observe(document.getElementById('adv_effective_current_user'), {attributes: true})
 
+$('#adv_owner_change_button').after(
+    '<button type="button" id="adv_owner_undo_button" class="ui-button ui-widget ui-corner-all adv-owner-undo-button" style="display:none;margin-left:10px;">Undo</button>'
+);
+$('#adv_owner_undo_button').on('click', function () {
+    performPermDialogUndo();
+});
+
 // change owner button:
 $('#adv_owner_change_button').click(function() {
     let selected_username = $('#adv_owner_current_owner').attr('username')
     let filepath = $('#advdialog').attr('filepath')
     let file_obj = path_to_file[filepath]
     if (selected_username && (selected_username.length > 0) && (selected_username in all_users) ) {
+        if (typeof recordPermDialogUndoSnapshot === 'function') recordPermDialogUndoSnapshot();
         file_obj.owner = all_users[selected_username]
         $('#adv_owner_current_owner').text(selected_username)
         emitState() // Log new state
@@ -541,42 +641,55 @@ $('#perm_entry_change_user').click(function(){
     open_user_select('perm_entry_username') 
 })
 
+function rebuildPermEntryCheckboxesForSelectedUser() {
+    let filepath = $('#advdialog').attr('filepath')
+    if (!filepath || !(filepath in path_to_file)) return
+    let file_obj = path_to_file[filepath]
 
-perm_entry_user_observer = new MutationObserver(function(mutationsList, observer){
-    for(let mutation of mutationsList) {
-        if(mutation.type === 'attributes') {
-            if(mutation.attributeName === 'selected_user') {
+    $('.perm_entry_checkcell').empty()
+    $('.perm_entry_checkcell').each(function () {
+        let cell_id = $(this).attr('id')
+        let checkbox = $(`<input type="checkbox" id="${cell_id}_checkbox" class="perm_entry_checkbox"></input>`)
+        $(this).append(checkbox)
+    })
 
-                let filepath = $('#advdialog').attr('filepath') // TODO: maybe set and use own filepath in this dialog.
-                let file_obj = path_to_file[filepath]
-                
-                // get rid of previous checkboxes:
-                $('.perm_entry_checkcell').empty()
-                // by default, put unchecked checkboxes everywhere:
-                $('.perm_entry_checkcell').each(function(i){
-                    let cell_id = $(this).attr('id')
-                    let checkbox = $(`<input type="checkbox" id="${cell_id}_checkbox" class="perm_entry_checkbox"></input>`)
-                    $(this).append(checkbox)
-                })
+    let selected_user = $('#perm_entry_username').attr('selected_user')
+    if (!selected_user || selected_user.length === 0) return
 
-                let all_perms = get_total_permissions(file_obj,$('#perm_entry_username').attr('selected_user'))
-                for(let ace_type in all_perms) {
-                    for(let p in all_perms[ace_type]) {
-                        let checkbox = $(document.getElementById(`perm_entry_row_${p}_${ace_type}_checkbox`))
-                        checkbox.prop('checked', true)
-                        if(all_perms[ace_type][p].inherited) {
-                            // can't uncheck inherited permissions.
-                            checkbox.prop('disabled', true)
-                        }
-                    }
-                }
-
-                $('.perm_entry_checkbox').change(function(){
-                    let username =  $('#perm_entry_username').attr('selected_user')
-                    let filepath =  $(`#advdialog`).attr('filepath')
-                    toggle_permission(filepath, username, $(this).parent().attr('perm'), $(this).parent().attr('type'), $(this).prop('checked'))
-                })
+    let all_perms = get_total_permissions(file_obj, selected_user)
+    for (let ace_type in all_perms) {
+        for (let p in all_perms[ace_type]) {
+            let checkbox = $(document.getElementById(`perm_entry_row_${p}_${ace_type}_checkbox`))
+            if (!checkbox.length) continue
+            checkbox.prop('checked', true)
+            if (all_perms[ace_type][p].inherited) {
+                checkbox.prop('disabled', true)
             }
+        }
+    }
+
+    $('.perm_entry_checkbox').off('change.permEntry').on('change.permEntry', function () {
+        let username = $('#perm_entry_username').attr('selected_user')
+        let fp = $('#advdialog').attr('filepath')
+        toggle_permission(
+            fp,
+            username,
+            $(this).parent().attr('perm'),
+            $(this).parent().attr('type'),
+            $(this).prop('checked')
+        )
+    })
+}
+
+function refreshPermEntryDialogIfOpen() {
+    if (!$('#permentry').length || !$('#permentry').dialog('isOpen')) return
+    rebuildPermEntryCheckboxesForSelectedUser()
+}
+
+perm_entry_user_observer = new MutationObserver(function (mutationsList, observer) {
+    for (let mutation of mutationsList) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'selected_user') {
+            rebuildPermEntryCheckboxesForSelectedUser()
         }
     }
 })

@@ -200,6 +200,7 @@ function emitState(purpose = "Permission state changed"){
 
 // add each permission in "permissions" (all of is_allow type) for the given file and user
 function add_permissons(file, user, permissions, is_allow) {
+  if (typeof recordPermDialogUndoSnapshot === 'function') recordPermDialogUndoSnapshot();
   for(p of permissions) {
     file.acl.push(make_ace(user, p, is_allow))
   }
@@ -207,6 +208,7 @@ function add_permissons(file, user, permissions, is_allow) {
 }
 
 function remove_permissions(file, user, permissions, is_allow) {
+  if (typeof recordPermDialogUndoSnapshot === 'function') recordPermDialogUndoSnapshot();
   file.acl = file.acl.filter(ace => {
     return !(ace.who === user && permissions.includes(ace.permission) && ace.is_allow_ace === is_allow)}
     )
@@ -215,6 +217,7 @@ function remove_permissions(file, user, permissions, is_allow) {
 
 // remove all permissions for given file and user
 function remove_all_perms_for_user(file, user) {
+  if (typeof recordPermDialogUndoSnapshot === 'function') recordPermDialogUndoSnapshot();
   file.acl = file.acl.filter(ace => ace.who !==user)
   emitState()
 }
