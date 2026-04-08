@@ -7,6 +7,8 @@
 // (recursively) makes and returns an html element (wrapped in a jquery object) for a given file object
 function make_file_element(file_obj) {
     let file_hash = get_full_path(file_obj)
+    let has_any_permission_entries = Object.keys(get_file_users(file_obj)).length > 0
+    let no_permissions_flag = has_any_permission_entries ? '' : ' <span class="no-perms-flag" title="No permissions set"><span class="fa fa-exclamation-circle no-perms-icon"></span><span class="no-perms-text">No Permissions Set for this File</span></span>'
 
     if(file_obj.is_folder) {
         let folder_elem = $(`<div class='folder' id="${file_hash}_div">
@@ -36,7 +38,7 @@ function make_file_element(file_obj) {
             <button class="ui-button ui-widget ui-corner-all permbutton" path="${file_hash}" id="${file_hash}_permbutton"> 
                 <span class="oi oi-lock-unlocked" id="${file_hash}_permicon"/> 
                 Edit Permissions
-            </button>
+            </button>${no_permissions_flag}
         </div>`)
     }
 }

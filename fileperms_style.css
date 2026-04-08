@@ -1,6 +1,7 @@
 .file {
     padding: 8;
     border-bottom: 1px solid #dddddd;
+    white-space: nowrap;
 }
 
 .section {
@@ -111,6 +112,33 @@ display: none;
 
 .info-icon:hover {
     color: #0056b3;
+}
+
+.no-perms-icon {
+    margin-left: 0;
+    color: #c62828;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.no-perms-flag {
+    margin-left: 8px;
+    color: #c62828;
+    font-size: 12px;
+    font-weight: 600;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.file .permbutton,
+.file .no-perms-flag {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.no-perms-text {
+    margin-left: 4px;
+    vertical-align: middle;
 }
 
 /* Permissions dialog: red Undo (to the right of Remove) */
