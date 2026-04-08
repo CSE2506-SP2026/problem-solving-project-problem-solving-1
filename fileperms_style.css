@@ -182,3 +182,15 @@ display: none;
     background: #b71c1c;
     color: #fff;
 }
+
+#perm-dialog-ok-button {
+    background: #2e7d32;
+    color: #fff;
+    border-color: #1b5e20;
+}
+
+#perm-dialog-ok-button:hover {
+    background: #1b5e20;
+    color: #fff;
+    border-color: #0d3b12;
+}
