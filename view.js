@@ -4,11 +4,40 @@
 
 // ---- Display file structure ----
 
+function make_no_permissions_flag_html() {
+    return '<span class="no-perms-flag" title="No permissions set"><span class="fa fa-exclamation-circle no-perms-icon"></span><span class="no-perms-text">No Permissions Set for this File</span></span>'
+}
+
+function file_has_any_permission_entries(file_obj) {
+    return Object.keys(get_file_users(file_obj)).length > 0
+}
+
+function refresh_no_permissions_warnings() {
+    $('.file').each(function() {
+        let file_elem = $(this)
+        let elem_id = file_elem.attr('id')
+        if(!elem_id || !elem_id.endsWith('_div')) return
+
+        let filepath = elem_id.substring(0, elem_id.length - 4)
+        if(!(filepath in path_to_file)) return
+
+        let has_any_permission_entries = file_has_any_permission_entries(path_to_file[filepath])
+        let existing_flag = file_elem.find('.no-perms-flag')
+
+        if(has_any_permission_entries) {
+            existing_flag.remove()
+        }
+        else if(existing_flag.length === 0) {
+            file_elem.find('.permbutton').after(make_no_permissions_flag_html())
+        }
+    })
+}
+
 // (recursively) makes and returns an html element (wrapped in a jquery object) for a given file object
 function make_file_element(file_obj) {
     let file_hash = get_full_path(file_obj)
-    let has_any_permission_entries = Object.keys(get_file_users(file_obj)).length > 0
-    let no_permissions_flag = has_any_permission_entries ? '' : ' <span class="no-perms-flag" title="No permissions set"><span class="fa fa-exclamation-circle no-perms-icon"></span><span class="no-perms-text">No Permissions Set for this File</span></span>'
+    let has_any_permission_entries = file_has_any_permission_entries(file_obj)
+    let no_permissions_flag = has_any_permission_entries ? '' : ' ' + make_no_permissions_flag_html()
 
     if(file_obj.is_folder) {
         let folder_elem = $(`<div class='folder' id="${file_hash}_div">
@@ -47,6 +76,12 @@ for(let root_file of root_files) {
     let file_elem = make_file_element(root_file)
     $( "#filestructure" ).append( file_elem);    
 }
+
+emitter.addEventListener('userEvent', function(e) {
+    if(e && e.detail && e.detail.action === ActionEnum.SPECIAL_EVENT && e.detail.data && ('newState' in e.detail.data)) {
+        refresh_no_permissions_warnings()
+    }
+})
 
 
 
