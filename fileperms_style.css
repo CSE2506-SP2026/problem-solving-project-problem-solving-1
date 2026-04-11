@@ -1,3 +1,77 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #f5f6f8;
+    color: #222;
+    margin: 0;
+}
+
+/* Better spacing defaults */
+button {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ui-button {
+    border-radius: 6px;
+    padding: 6px 12px;
+}
+
+/* Make the overall dialog taller */
+.ui-dialog {
+    height: 85vh !important;   /* take most of screen */
+    max-height: 90vh !important;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+
+    display: flex;
+    flex-direction: column;
+}
+
+.ui-dialog-titlebar {
+    background: #1976d2;
+    color: white;
+    border: none;
+}
+
+.ui-dialog-buttonpane {
+    border-top: 1px solid #eee;
+    padding: 10px;
+
+    flex-shrink: 0;
+    margin-top: auto;
+}
+
+/* Let the content actually fill it */
+#advdialog {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+/* Tabs container fills space */
+#advtabs {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Tab panels grow */
+.ui-tabs-panel {
+    flex: 1;
+    overflow: auto !important;
+}
+
+.ui-dialog-content {
+    display: flex;
+    flex-direction: column;
+    height: 100% !important;
+
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
 .file {
     padding: 8;
     border-bottom: 1px solid #dddddd;
@@ -193,4 +267,481 @@ display: none;
     background: #1b5e20;
     color: #fff;
     border-color: #0d3b12;
+}
+
+#permdialog_file_user_list {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    height: auto !important;
+    overflow-y: visible !important;
+    padding: 4px 0;
+}
+
+#permdialog_file_user_list div,
+#permdialog_file_user_list li {
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+#permdialog_file_user_list div:hover,
+#permdialog_file_user_list li:hover {
+    background: #f0f4ff;
+}
+
+#permdialog_file_user_list .ui-selected {
+    background: #1976d2;
+    color: white;
+    font-weight: 500;
+}
+
+#permdialog_file_user_list div:not(:last-child),
+#permdialog_file_user_list li:not(:last-child) {
+    border-bottom: 1px solid #f1f1f1;
+}
+
+#permdialog_file_user_list:empty::after {
+    content: "No users available";
+    display: block;
+    padding: 8px;
+    color: #888;
+    font-style: italic;
+}
+
+#permdialog_grouped_permissions {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    border-collapse: collapse;
+    overflow: hidden;
+}
+
+#permdialog_grouped_permissions th {
+    background: #f1f5f9;
+    padding: 8px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 1px solid #ddd;
+}
+
+#permdialog_grouped_permissions tr:not(#permdialog_grouped_permissions_header) {
+    transition: background 0.15s ease;
+}
+
+#permdialog_grouped_permissions tr:not(#permdialog_grouped_permissions_header):hover {
+    background: #f7f9fc;
+}
+
+#permdialog_grouped_permissions td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+#permdialog_grouped_permissions td:nth-child(2),
+#permdialog_grouped_permissions td:nth-child(3) {
+    text-align: center;
+}
+
+#permdialog_grouped_permissions input[type="checkbox"] {
+    appearance: none;
+    width: 34px;
+    height: 18px;
+    background: #ccc;
+    border-radius: 999px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+#permdialog_grouped_permissions input[type="checkbox"]::before {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.2s ease;
+}
+
+#permdialog_grouped_permissions input[ptype="allow"]:checked {
+    background: #2e7d32;
+}
+
+#permdialog_grouped_permissions input[ptype="allow"]:checked::before {
+    transform: translateX(16px);
+}
+
+#permdialog_grouped_permissions input[ptype="deny"]:checked {
+    background: #c62828;
+}
+
+#permdialog_grouped_permissions input[ptype="deny"]:checked::before {
+    transform: translateX(16px);
+}
+
+#permdialog_grouped_permissions input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+#adv_permissions_tab {
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 10px;
+}
+
+#adv_perm_object_name,
+#adv_perm_entries_text {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: #374151;
+}
+
+#adv_perm_filepath {
+    font-family: monospace;
+    background: #eef2ff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #3730a3;
+}
+
+#adv_perm_table_container {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 300px;
+}
+
+#adv_perm_table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#adv_perm_table th {
+    background: #f1f5f9;
+    padding: 8px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 1px solid #ddd;
+    font-size: 13px;
+}
+
+#adv_perm_table td {
+    padding: 7px 8px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 13px;
+}
+
+#adv_perm_table tr:not(#adv_perm_header):hover {
+    background: #f7f9fc;
+}
+
+#adv_perm_table tr:nth-child(even):not(#adv_perm_header) {
+    background: #fafafa;
+}
+
+/* Allow = green */
+#adv_perm_table td:first-child:contains("allow") {
+    color: #2e7d32;
+    font-weight: 500;
+}
+
+/* Fallback if :contains doesn't work (JS-heavy tables often need this instead) */
+#adv_perm_table td:first-child {
+    text-transform: capitalize;
+}
+
+#adv_perm_edit {
+    margin-top: 10px;
+    background: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+}
+
+#adv_perm_edit:hover {
+    background: #125ea2;
+}
+
+#adv_perm_inheritance_div,
+#adv_perm_replace_child_div {
+    display: none;
+}
+
+#adv_perm_inheritance_div,
+#adv_perm_replace_child_div {
+    margin-top: 10px;
+    padding: 8px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    display: none; /* hidden by default; shown conditionally by JS */
+}
+
+#adv_permissions_tab input[type="checkbox"] {
+    margin-right: 6px;
+    transform: scale(1.1);
+}
+
+#adv_perm_inheritance_label,
+#adv_perm_replace_child_permissions_label {
+    font-size: 13px;
+    color: #333;
+}
+
+#adv_owner_tab {
+    background: #f8fafc;
+    padding: 14px;
+    border-radius: 10px;
+}
+
+#adv_owner_explanation {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 10px;
+}
+
+#adv_owner_object_name {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+#adv_owner_filepath {
+    font-family: monospace;
+    background: #eef2ff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #3730a3;
+}
+
+#adv_owner_current_owner_text {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #555;
+}
+
+#adv_owner_current_owner {
+    margin-top: 4px;
+    padding: 8px 10px;
+    background: #e8f5e9;
+    border: 1px solid #c8e6c9;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #2e7d32;
+    display: inline-block;
+}
+
+#adv_owner_change_owner_text {
+    margin-top: 14px;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+#adv_owner__all_users {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 4px 0;
+}
+
+#adv_owner__all_users .ui-selectee {
+    padding: 6px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s ease;
+}
+
+#adv_owner__all_users .ui-selectee:hover {
+    background: #f0f4ff;
+}
+
+#adv_owner__all_users .ui-selected {
+    background: #1976d2 !important;
+    color: white;
+    font-weight: 500;
+}
+
+#adv_owner__all_users .oi-person {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+#adv_owner__all_users .ui-selected .oi-person {
+    color: white;
+}
+
+#adv_owner_change_button {
+    margin-top: 12px;
+    background: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+}
+
+#adv_owner_change_button:hover {
+    background: #125ea2;
+}
+
+#adv_owner_undo_button {
+    background: #c62828;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+}
+
+#adv_owner_undo_button:hover {
+    background: #b71c1c;
+}
+
+#advdialog {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 0;
+}
+
+#advtabs {
+    border: none;
+    background: transparent;
+}
+
+#advtabs_titles {
+    background: #e5e7eb;
+    border: none;
+    border-radius: 10px 10px 0 0;
+    padding: 4px;
+    display: flex;
+    gap: 4px;
+}
+
+#advtabs_titles li {
+    list-style: none;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    background: transparent;
+    transition: all 0.2s ease;
+}
+
+#advtabs_titles a {
+    text-decoration: none;
+    color: #374151;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+#advtabs_titles li:hover {
+    background: #dbeafe;
+}
+
+#advtabs_titles .ui-tabs-active {
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+#advtabs_titles .ui-tabs-active a {
+    color: #111827;
+    font-weight: 600;
+}
+
+.ui-tabs-panel {
+    background: #ffffff !important;
+    border: none !important;
+    border-radius: 0 0 10px 10px;
+    padding: 12px;
+}
+
+.ui-tabs .ui-tabs-nav li.ui-state-default {
+    border: none !important;
+}
+
+#adv_effective_effective_list {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+#adv_effective_effective_list tr {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    transition: background 0.15s ease;
+}
+
+#adv_effective_effective_list tr:hover {
+    background: #f1f5f9;
+}
+
+#adv_effective_effective_list td {
+    font-size: 13px;
+}
+
+.effectivecheckcell {
+    width: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#adv_effective_current_user_line {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+#adv_effective_user_select {
+    background: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+}
+
+#adv_effective_user_select:hover {
+    background: #125ea2;
+}
+
+.effectivecheckcell .oi-check {
+    color: #2e7d32;
+    font-size: 14px;
+}
+
+.effectivecheckcell:empty::before {
+    content: "–";
+    color: #bbb;
+    font-size: 14px;
+}
+
+#adv_effective_effective_list tr:has(.oi-check) {
+    background: #f0fdf4;
+}
+
+#adv_effective_effective_list tr:not(:has(.oi-check)) {
+    opacity: 0.7;
+}
+
+#adv_effective_effective_list td:last-child {
+    color: #374151;
+}
+
+#permdialog_file_user_list,
+#adv_owner__all_users,
+#adv_perm_table_container,
+#adv_effective_effective_list {
+    height: auto !important;
+    max-height: 320px;
+    overflow-y: auto !important;
 }

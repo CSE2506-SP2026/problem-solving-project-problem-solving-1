@@ -16,18 +16,18 @@ perm_dialog = define_new_dialog('permdialog', title='Permissions', options = {
         if (typeof clearPermDialogUndoStack === 'function') clearPermDialogUndoStack();
     },
     buttons: {
-        OK:{
-            text: "Save Changes",
-            id: "perm-dialog-ok-button",
-            click: function() {
-                $( this ).dialog( "close" );
-            }
-        },
         Advanced: {
             text: "Advanced",
             id: "perm-dialog-advanced-button",
             click: function() {
                 open_advanced_dialog(perm_dialog.attr('filepath'))
+            }
+        },
+        OK:{
+            text: "Save Changes",
+            id: "perm-dialog-ok-button",
+            click: function() {
+                $( this ).dialog( "close" );
             }
         }
     }
@@ -313,6 +313,22 @@ function open_advanced_dialog(file_path) {
 
     $('#adv_perm_replace_child_permissions').prop('checked', false)
 
+    // Show/hide inheritance option
+    if (file_obj.parent !== null) {
+        $('#adv_perm_inheritance_div').css('display', 'block');
+    } else {
+        $('#adv_perm_inheritance_div').css('display', 'none');
+        $('#adv_perm_inheritance').prop('checked', false);
+    }
+
+    // Show/hide replace-child option
+    if (file_obj.is_folder && parent_to_children[file_path]?.length > 0) {
+        $('#adv_perm_replace_child_div').css('display', 'block');
+    } else {
+        $('#adv_perm_replace_child_div').css('display', 'none');
+        $('#adv_perm_replace_child_permissions').prop('checked', false);
+    }
+
     // permissions list for permissions tab:
     let users = get_file_users(file_obj)
     for(let u in users) {
@@ -335,6 +351,8 @@ function open_advanced_dialog(file_path) {
     $('#adv_owner_current_owner').text(get_user_name(file_obj.owner))
 
     $('#adv_owner_user_list').append(all_user_list)
+
+    console.log(file_obj);
 
     // open dialog:
     $(`#advdialog`).dialog('open')
@@ -423,6 +441,9 @@ let adv_contents = $(`#advdialog`).dialog({
         },
     ],
 });
+// Ensure advanced-only controls are hidden by default on initialization.
+$('#adv_perm_inheritance_div').hide();
+$('#adv_perm_replace_child_div').hide();
 // generate ID for each HTML element making up the dialog:
 
 // open user select dialog on "select" button press:
