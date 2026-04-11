@@ -312,21 +312,22 @@ function open_advanced_dialog(file_path) {
     }
 
     $('#adv_perm_replace_child_permissions').prop('checked', false)
-
-    // Show/hide inheritance option
-    if (file_obj.parent !== null) {
-        $('#adv_perm_inheritance_div').css('display', 'block');
-    } else {
-        $('#adv_perm_inheritance_div').css('display', 'none');
-        $('#adv_perm_inheritance').prop('checked', false);
-    }
-
+    
     // Show/hide replace-child option
     if (file_obj.is_folder && parent_to_children[file_path]?.length > 0) {
         $('#adv_perm_replace_child_div').css('display', 'block');
     } else {
         $('#adv_perm_replace_child_div').css('display', 'none');
         $('#adv_perm_replace_child_permissions').prop('checked', false);
+    }
+
+    // Show/hide inheritance option
+    if (file_obj.parent !== null ) {
+        $('#adv_perm_inheritance_div').css('display', 'block');
+        $('#adv_perm_replace_child_div').css('display', 'none');
+    } else {
+        $('#adv_perm_inheritance_div').css('display', 'none');
+        $('#adv_perm_inheritance').prop('checked', false);
     }
 
     // permissions list for permissions tab:
