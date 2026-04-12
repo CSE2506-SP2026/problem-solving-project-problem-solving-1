@@ -578,8 +578,46 @@ function define_file_permission_groups_list(id_prefix){
 
 // -- a general-purpose User Select dialog which can be opened when we need to select a user. -- 
 
+function getUserSelectDialogAddButton() {
+    try {
+        return user_select_dialog.dialog('widget').find('#user_select_ok_button')
+    } catch (err) {
+        return $('#user_select_ok_button')
+    }
+}
+
+function syncUserSelectDialogAddButtonStyle(selected_item_name) {
+    let btn = getUserSelectDialogAddButton()
+    if (!btn.length) return
+    if (selected_item_name && String(selected_item_name).length > 0) {
+        btn.addClass('user-select-add-active')
+    } else {
+        btn.removeClass('user-select-add-active')
+    }
+}
+
+// After any select gesture, re-sync from the DOM. Manually clearing .ui-selected in the dialog open
+// handler does not reset jQuery UI Selectable's internal state, so the "selected" callback may not
+// run when clicking the same row again — the green Add button would then stay out of sync.
+function syncUserSelectDialogFromListSelection() {
+    let el = all_users_selectlist.find('.ui-selected').first()
+    let name = el.length ? (el.attr('name') || '') : ''
+    if (name) {
+        all_users_selectlist.attr('selected_item', name)
+    } else {
+        all_users_selectlist.removeAttr('selected_item')
+    }
+    syncUserSelectDialogAddButtonStyle(name)
+}
+
 // Make a selectable list which will store all of the users, and automatically keep track of which one is selected.
-all_users_selectlist = define_single_select_list('user_select_list')
+all_users_selectlist = define_single_select_list('user_select_list', function (selected_item_name) {
+    syncUserSelectDialogAddButtonStyle(selected_item_name)
+})
+
+all_users_selectlist.on('selectablestop', function () {
+    syncUserSelectDialogFromListSelection()
+})
 
 // Make the elements which reperesent all users, and add them to the selectable
 all_user_elements = make_user_list('user_select', all_users)
@@ -587,6 +625,15 @@ all_users_selectlist.append(all_user_elements)
 
 // Make the dialog:
 user_select_dialog = define_new_dialog('user_select_dialog2', 'Select User', {
+    open: function () {
+        all_users_selectlist.unselect()
+        all_users_selectlist.removeAttr('selected_item')
+        syncUserSelectDialogAddButtonStyle('')
+        // Run again after the dialog finishes layout/focus so the Add button we style is the live one.
+        setTimeout(function () {
+            syncUserSelectDialogFromListSelection()
+        }, 0)
+    },
     buttons: {
         Cancel: {
             text: "Cancel",
@@ -595,11 +642,11 @@ user_select_dialog = define_new_dialog('user_select_dialog2', 'Select User', {
                 $( this ).dialog( "close" );
             },
         },
-        OK: {
-            text: "OK",
+        Add: {
+            text: "Add",
             id: "user_select_ok_button",
             click: function() {
-                // When "OK" is clicked, we want to populate some other element with the selected user name 
+                // When "Add" is clicked, we want to populate some other element with the selected user name 
                 //(to pass along the selection information to whoever opened this dialog)
                 let to_populate_id = $(this).attr('to_populate') // which field do we need to populate?
                 // console.log("populate id " + to_populate_id);
