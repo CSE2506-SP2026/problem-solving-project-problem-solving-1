@@ -661,6 +661,15 @@ user_select_dialog = define_new_dialog('user_select_dialog2', 'Select User', {
 
 // add stuff to the dialog:
 user_select_dialog.append(all_users_selectlist)
+user_select_add_all_button = $('<button type="button" id="user_select_add_all_button" class="ui-button ui-widget ui-corner-all" style="margin-top:8px;">Add all</button>')
+user_select_add_all_button.on('click', function () {
+    let to_populate_id = user_select_dialog.attr('to_populate')
+    if (typeof window.handleUserSelectDialogAddAll === 'function') {
+        window.handleUserSelectDialogAddAll(to_populate_id)
+    }
+    user_select_dialog.dialog('close')
+})
+user_select_dialog.append(user_select_add_all_button)
 
 // Call this function whenever you need a user select dialog; it will automatically populate the 'selected_user' attribute of the element with id to_populate_id
 function open_user_select_dialog(to_populate_id) {

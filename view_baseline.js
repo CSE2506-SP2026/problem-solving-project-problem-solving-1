@@ -68,6 +68,20 @@ perm_add_user_select = define_new_user_select_field('perm_add_user', 'Add...', o
 })
 perm_add_user_select.find('span').hide()// Cheating a bit - just show the button from the user select; hide the part that displays the username.
 
+window.handleUserSelectDialogAddAll = function (to_populate_id) {
+    if (to_populate_id !== 'perm_add_user_field') return
+    // Every principal in the model (users, groups like students/employees/admin, etc.)
+    let candidateNames = Object.keys(all_users)
+    for (let selected_user of candidateNames) {
+        if (!selected_user || !(selected_user in all_users)) continue
+        let expected_user_elem_id = `permdialog_file_user_${selected_user}`
+        if (file_permission_users.find(`#${expected_user_elem_id}`).length === 0) {
+            if (typeof recordPermDialogUndoAddedUser === 'function') recordPermDialogUndoAddedUser(selected_user)
+            let new_user_elem = make_user_elem('permdialog_file_user', selected_user)
+            file_permission_users.append(new_user_elem)
+        }
+    }
+}
 
 // -- Make button to remove currently-selected user; also make some dialogs that may pop up when user clicks this. --
 
