@@ -40,6 +40,25 @@ obj_name_div = $('<div id="permdialog_objname" class="section">Object Name: <spa
 //Make the div with the explanation about special permissions/advanced settings:
 advanced_expl_div = $('<div id="permdialog_advanced_explantion_text">For special permissions or advanced settings, click Advanced.</div>')
 
+// Button shown in the main permissions dialog when a file has no permission entries.
+perm_copy_from_parent_div = $('<div id="permdialog_copy_from_parent_div" class="section" style="display:none"></div>')
+perm_copy_from_parent_button = $('<button type="button" id="permdialog_copy_from_parent_button" class="ui-button ui-widget ui-corner-all">Copy permission settings from parent folder</button>')
+perm_copy_from_parent_button.click(function () {
+    let filepath = perm_dialog.attr('filepath')
+    if (!filepath || !(filepath in path_to_file)) return
+
+    let file_obj = path_to_file[filepath]
+    if (typeof recordPermDialogUndoSnapshot === 'function') recordPermDialogUndoSnapshot();
+    file_obj.using_permission_inheritance = true
+    emitState()
+
+    reloadPermDialogForCurrentPath({ preserveSelectedUser: true })
+    if ($('#advdialog').length && $('#advdialog').dialog && $('#advdialog').dialog('isOpen')) {
+        open_advanced_dialog(filepath)
+    }
+})
+perm_copy_from_parent_div.append(perm_copy_from_parent_button)
+
 // Make the (grouped) permission checkboxes table:
 grouped_permissions = define_grouped_permission_checkboxes('permdialog_grouped_permissions')
 grouped_permissions.addClass('section') // add a 'section' class to the grouped_permissions element. This class adds a bit of spacing between this element and the next.
@@ -179,6 +198,7 @@ perm_dialog.append(perm_add_user_select)
 perm_add_user_select.append(perm_remove_user_button) // Cheating a bit again - add the remove button the the 'add user select' div, just so it shows up on the same line.
 perm_add_user_select.append(perm_undo_user_button)
 perm_dialog.append(grouped_permissions)
+perm_dialog.append(perm_copy_from_parent_div)
 perm_dialog.append(advanced_expl_div)
 
 // --- Additional logic for reloading contents when needed: ---
@@ -191,6 +211,7 @@ function reloadPermDialogForCurrentPath(maybePathOrOptions) {
 
     let current_filepath = perm_dialog.attr('filepath')
     if (!current_filepath || !(current_filepath in path_to_file)) return;
+    let current_file_obj = path_to_file[current_filepath]
 
     let usernameToRestore = '';
     if (preserveSelectedUser) {
@@ -224,6 +245,14 @@ function reloadPermDialogForCurrentPath(maybePathOrOptions) {
     } else {
         grouped_permissions.attr('username', '');
         file_permission_users.removeAttr('selected_item');
+    }
+
+    let has_any_permission_entries = Object.keys(get_file_users(current_file_obj)).length > 0
+    let show_copy_from_parent_button = (!has_any_permission_entries) && (current_file_obj.parent !== null) && (!current_file_obj.is_folder)
+    if (show_copy_from_parent_button) {
+        perm_copy_from_parent_div.show()
+    } else {
+        perm_copy_from_parent_div.hide()
     }
 }
 
@@ -260,6 +289,12 @@ function performPermDialogUndo() {
 
 //Define an observer which will propagate perm_dialog's filepath attribute to all the relevant elements, whenever it changes:
 define_attribute_observer(perm_dialog, 'filepath', reloadPermDialogForCurrentPath)
+
+emitter.addEventListener('userEvent', function (e) {
+    if (!e || !e.detail || e.detail.action !== ActionEnum.SPECIAL_EVENT) return
+    if (!(typeof perm_dialog !== 'undefined' && perm_dialog.dialog && perm_dialog.dialog('isOpen'))) return
+    reloadPermDialogForCurrentPath({ preserveSelectedUser: true })
+})
 
 // ---- Old code which doesn't use the helper functions starts here ----
 

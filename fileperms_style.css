@@ -257,6 +257,27 @@ display: none;
     color: #fff;
 }
 
+#permdialog_copy_from_parent_button.ui-button,
+#permdialog_copy_from_parent_button.ui-button.ui-state-default {
+background: #c62828;
+color: #fff;
+border: 1px solid #b71c1c;
+}
+
+#permdialog_copy_from_parent_button.ui-button:hover,
+#permdialog_copy_from_parent_button.ui-button.ui-state-hover {
+background: #b71c1c;
+color: #fff;
+border-color: #7f0000;
+}
+
+#permdialog_copy_from_parent_button.ui-button:focus {
+background: #b71c1c;
+color: #fff;
+}
+
+
+
 /* Advanced Security: footer Undo (Permissions tab, left of OK) and Owner tab Undo */
 #advanced-dialog-undo-button.ui-button,
 #advanced-dialog-undo-button.ui-button.ui-state-default,
