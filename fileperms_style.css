@@ -27,6 +27,15 @@ button {
     flex-direction: column;
 }
 
+.adv-dialog-auto-size {
+    height: auto !important;
+    max-height: 90vh !important;
+}
+
+.adv-dialog-auto-size .ui-dialog-content {
+    height: auto !important;
+}
+
 .ui-dialog-titlebar {
     background: #1976d2;
     color: white;
@@ -753,9 +762,14 @@ display: none;
 
 #permdialog_file_user_list,
 #adv_owner__all_users,
-#adv_perm_table_container,
 #adv_effective_effective_list {
     height: auto !important;
     max-height: 320px;
+    overflow-y: auto !important;
+}
+
+#adv_perm_table_container {
+    height: auto !important;
+    max-height: 240px;
     overflow-y: auto !important;
 }

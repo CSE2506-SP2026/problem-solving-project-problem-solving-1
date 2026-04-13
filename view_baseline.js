@@ -327,8 +327,10 @@ function open_advanced_dialog(file_path) {
 
     $('#adv_perm_replace_child_permissions').prop('checked', false)
     
+    const is_parent_folder = file_obj.is_folder && parent_to_children[file_path]?.length > 0
+
     // Show/hide replace-child option
-    if (file_obj.is_folder && parent_to_children[file_path]?.length > 0) {
+    if (is_parent_folder) {
         $('#adv_perm_replace_child_div').css('display', 'block');
     } else {
         $('#adv_perm_replace_child_div').css('display', 'none');
@@ -336,9 +338,8 @@ function open_advanced_dialog(file_path) {
     }
 
     // Show/hide inheritance option
-    if (file_obj.parent !== null ) {
+    if (file_obj.parent !== null && !is_parent_folder) {
         $('#adv_perm_inheritance_div').css('display', 'block');
-        $('#adv_perm_replace_child_div').css('display', 'none');
     } else {
         $('#adv_perm_inheritance_div').css('display', 'none');
         $('#adv_perm_inheritance').prop('checked', false);
@@ -421,7 +422,7 @@ for(let p of Object.values(permissions)) {
 
 // Advanced dialog
 $( "#advtabs" ).tabs({
-    heightStyle: 'fill',
+    heightStyle: 'content',
     activate: function () {
         if (typeof updatePermissionUndoButtons === 'function')
             updatePermissionUndoButtons();
@@ -430,7 +431,10 @@ $( "#advtabs" ).tabs({
 let adv_contents = $(`#advdialog`).dialog({
     position: { my: "top", at: "top", of: $('#html-loc') },
     width: 700,
-    height: 450,
+    height: 'auto',
+    minHeight: 260,
+    maxHeight: Math.floor(window.innerHeight * 0.85),
+    dialogClass: 'adv-dialog-auto-size',
     modal: true,
     autoOpen: false,
     appendTo: "#html-loc",
